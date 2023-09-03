@@ -1,0 +1,1 @@
+{"intents": [{"tag": "good words", "patterns": ["Mir geht es gut"], "responses": [], "context_set": ""}, {"tag": "neutral words", "patterns": ["asjdflaksf", "so lala"], "responses": [], "context_set": ""}, {"tag": "bad words", "patterns": ["Mir geht es schlecht", "sjdfdf"], "responses": [], "context_set": ""}]}

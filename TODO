@@ -1,0 +1,35 @@
+# TODO
+
+
+- Verzeichnis für .json kram
+- .json kram fressen und merken, was es schon gibt. txt file?
+- Verzeichnis für .pt kram
+- Chatbot vergleich .pt Verzeichnis auslesen. -> dropdown / textinput
+- Training richtig hinbekommen
+- Obiges "fressen" so umsetzen, dass 
+    - dinge richtig ans training übergeben werden;
+    - richtig gescheduled wird,
+    - grakas verwendet werden.
+- scheduler view
+
+## Bonusaufgabe
+
+- chat tree als json oder so
+- exportunktion
+- eigene label
+
+## Stemmer
+
+- cistem
+
+## möglicherweise für daemon nötig:
+
+```Python
+import runpy; 
+import sys; 
+
+sys.argv = ["streamlit", "version"]; 
+runpy.run_module("streamlit", run_name="__main__")
+```
+
+Infos: https://github.com/streamlit/streamlit/issues/5471#issuecomment-1341051365
