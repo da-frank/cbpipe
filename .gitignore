@@ -1,7 +1,11 @@
 inputs/*
-outputs/*
 
+outputs/*
 !outputs/plots/
+outputs/plots/*
 !outputs/networks/
+outputs/networks/*
 !outputs/networks/state_dicts/
+outputs/networks/state_dicts/*
+
 !**/.gitkeep
