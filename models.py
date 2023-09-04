@@ -9,10 +9,10 @@ nltk.download('punkt')
 import os
 import json
 
-PATHDATA = "chabodoc/data/"
-PATHSTOP = PATHDATA+"stopwords/"
+PATHDATA = "./"
+PATHSTOP = "./" # PATHDATA+"stopwords/"
 PATHWORDS = PATHDATA+"words/"
-PATHNET = PATHDATA+"networks/"
+PATHNET = PATHDATA+"outputs/networks/state_dicts/"
 print(os.getcwd())
 
 class Classifier(nn.Module):

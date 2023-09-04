@@ -7,20 +7,25 @@ import pandas as pd
 
 from models import Netpicker
 
-#from utils import Classifier
-#import matplotlib
+# from utils import Classifier
+# import matplotlib
+
+inputdir = "inputs/"
+
 
 def load_token():
-    with open("chabodoc/tokenlists/t3.txt", "r") as file:
+    with open("token.txt", "r") as file:
         t = file.read()
     t = t.split("/")
-    return t[randint(0,len(t))]
+    return t[randint(0, len(t))]
+
 
 @st.cache(suppress_st_warning=True)
 def download_punkt():
     nltk.download("punkt")
 
 # ---------------------------------------------------------------------------------------------------------
+
 
 st.markdown("## Vergleich der ChatBots")
 
@@ -30,20 +35,13 @@ st.markdown(
 
 st.markdown("---")
 
-# TODO read group names from some file or anything similar
-group_list_dropdown = ["Melinda", 
-                        "Salzwerk", 
-                        "Gruppe", 
-                        "MarzInator", 
-                        "LuSo", 
-                        "Frankensteinmonster", 
-                        "Supernet", 
-                        "Mogelnet"
-                    ]
+# get list of groups from inputs directory
+group_list_dropdown = [name.split(".")[0]
+                       for name in os.listdir(inputdir) if "json" in name]
 
 chatbot_option = st.selectbox(
     "ChatBot Auswahl",
-    group_list_dropdown, 
+    group_list_dropdown,
 )
 
 # TODO take Gruppe(...) instead of Testgruppe
@@ -55,7 +53,7 @@ table_current_group_good = chatbot_option + "good_table_entries"
 table_current_group_bad = chatbot_option + "bad_table_entries"
 table_current_group_neutral = chatbot_option + "neutral_table_entries"
 if table_current_group_input not in st.session_state:
-    #st.write("Group not in session state")
+    # st.write("Group not in session state")
     st.session_state[table_current_group_input] = []
     st.session_state[table_current_group_good] = []
     st.session_state[table_current_group_bad] = []
@@ -93,5 +91,5 @@ if submit:
     st.markdown("---")
     st.markdown(f"Überprüfungsschlüssel zur Abgabe: **{load_token()}**")
 
-    #st.sidebar.image("./images/Logo_Uni_Luebeck_600dpi.png", use_column_width=True)
-    #st.sidebar.image("./images/Logo_UKT.png", use_column_width=True)
+    # st.sidebar.image("./images/Logo_Uni_Luebeck_600dpi.png", use_column_width=True)
+    # st.sidebar.image("./images/Logo_UKT.png", use_column_width=True)
