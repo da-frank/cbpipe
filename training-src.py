@@ -1,5 +1,10 @@
 # main.py
 # Trainiert nacheinander alle Gruppenchatbots
+from utils import Classifier  # ACHTUNG: utils.py wird hier benötigt!
+import json
+import os
+import matplotlib.pyplot as plt
+import nltk
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -7,29 +12,26 @@ from tqdm.auto import trange
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
-import nltk
 nltk.download('punkt')
 
 # STEMMER (hier am besten Cistem statt Lancaster)
 STEMMER = nltk.stem.lancaster.LancasterStemmer()
 
-import matplotlib.pyplot as plt
-import os
-import json
-from utils import Classifier # ACHTUNG: utils.py wird hier benötigt!
 
 projectdir = "."
 inputdir = f"{projectdir}inputs/"
 outputdir = f"{projectdir}outputs/"
 
 # Beziehe alle Chatbotnamen
-gruppenliste = [name.split(".")[0] for name in os.listdir(inputdir) if "json" in name]
+gruppenliste = [name.split(".")[0]
+                for name in os.listdir(inputdir) if "json" in name]
 
 # Bereits trainierte werden nicht nochmal trainiert (etwas unschön umgesetzt, bei einer Hand voll Bots geht das aber)
-#trained = ["Supernet", "Salzwerk", "Gruppe_1", "melinda", "Gruppe", "LuSo", "MarzInator"]
-trained = ['Gruppe', 'LuSo', 'MarzInator', 'Melinda', 'PommesBot', 'Salzwerk', 'Supernet', "Gruppe_1", "Discovery", "Dornröschen"]
+# trained = ["Supernet", "Salzwerk", "Gruppe_1", "melinda", "Gruppe", "LuSo", "MarzInator"]
+trained = ['Gruppe', 'LuSo', 'MarzInator', 'Melinda', 'PommesBot',
+           'Salzwerk', 'Supernet', "Gruppe_1", "Discovery", "Dornröschen"]
 trained = []
-#gruppenliste = ["Supernet"]
+# gruppenliste = ["Supernet"]
 
 
 # Durchlaufe alle Gruppennamen und trainiere jeweils den Chatbot
@@ -42,23 +44,26 @@ for gruppe in gruppenliste:
     # Lade Trainingsdaten in den Arbeitsspeicher
     with open(f"{inputdir}{gruppe}.json", encoding="utf-8") as file:
         intentsdata = json.load(file)
-        #print(intentsdata)
+        # print(intentsdata)
     # Lade Stopwords, falls sie existieren (die werden ignoriert)
     with open(f"{projectdir}stopwords.txt", "r", encoding="utf-8") as file:
         # Allgemeine Stopwords
-        stopwords = [w.replace("\n", "").strip() for w in file.readlines() if w != "" or w != "\n"]
+        stopwords = [w.replace("\n", "").strip()
+                     for w in file.readlines() if w != "" or w != "\n"]
     if f"{gruppe}_stop.txt" in os.listdir(f"{inputdir}stopwords"):
         with open(f"{inputdir}stopwords/{gruppe}_stop.txt", "r", encoding="utf-8") as file:
             # Gruppeneigene Stopwords
-            stopwords.extend([w.replace("\n", "").strip() for w in file.readlines() if w != "" or w != "\n"])
+            stopwords.extend([w.replace("\n", "").strip()
+                             for w in file.readlines() if w != "" or w != "\n"])
             stopwords = list(set(stopwords))
     stopwords = list(set([w.lower() for w in stopwords]))
 
     # Generiere Trainingsdaten
-    words = [] # Liste bekannter Wörter in Tokenform
-    labels = [] # zugehöriges Label (good, bad, neutral)
-    docs_x = [] # Liste aller Sätze im Datensatz (anders als words, da words nur einzelne Wörter enthält)
-    docs_y = [] # Label zu docs_x
+    words = []  # Liste bekannter Wörter in Tokenform
+    labels = []  # zugehöriges Label (good, bad, neutral)
+    # Liste aller Sätze im Datensatz (anders als words, da words nur einzelne Wörter enthält)
+    docs_x = []
+    docs_y = []  # Label zu docs_x
     for intent in intentsdata["intents"]:
         for pattern in intent["patterns"]:
             wrds = nltk.word_tokenize(pattern)
@@ -70,10 +75,12 @@ for gruppe in gruppenliste:
             labels.append(intent["tag"])
 
     print(len(words))
-    words = [w.lower() for w in words if not w.lower() in stopwords] # Stopwords aus words entfernen
-    words = [STEMMER.stem(w.lower()) for w in words if w != "?"] # Token in Wortstämme umwandeln
-    words = sorted(list(set(words))) # list(set(...)) löscht doppelte Einträge
-    print(len(words))    
+    # Stopwords aus words entfernen
+    words = [w.lower() for w in words if not w.lower() in stopwords]
+    # Token in Wortstämme umwandeln
+    words = [STEMMER.stem(w.lower()) for w in words if w != "?"]
+    words = sorted(list(set(words)))  # list(set(...)) löscht doppelte Einträge
+    print(len(words))
 
     with open(f"{projectdir}words/{gruppe}_words.txt", "w", encoding="utf-8") as file:
         # Speichere bekannte Wörter ab
@@ -83,9 +90,9 @@ for gruppe in gruppenliste:
     print(len(words))
 
     # Trainingsdaten vorbereiten
-    training = [] 
+    training = []
     output = []
-    out_empty = [0 for _ in range(len(labels))] # Lange Liste mit Nullen
+    out_empty = [0 for _ in range(len(labels))]  # Lange Liste mit Nullen
 
     for x, doc in enumerate(docs_x):
         bag = []
@@ -103,11 +110,11 @@ for gruppe in gruppenliste:
         output.append(output_row)
 
     # Supernet wird auf den Trainingsdaten ALLER Gruppen trainiert (alt)
-    if gruppe=="Supernet":
+    if gruppe == "Supernet":
         N = len(training)
         n_klasse = 400
 
-        for n in [3,4,5,6]:
+        for n in [3, 4, 5, 6]:
             for i in range(3*n_klasse):
                 output_row = [0 for _ in range(len(labels))]
                 output_row[i//n_klasse] = 1
@@ -116,11 +123,11 @@ for gruppe in gruppenliste:
                 idx = 0
                 idx_list = []
                 j_list = []
-                while sum(bag)<n and idx not in idx_list:
+                while sum(bag) < n and idx not in idx_list:
                     idx = torch.randint(N, (1,)).item()
-                    if output[idx].index(1)==i//n_klasse:
+                    if output[idx].index(1) == i//n_klasse:
                         for j, entry in enumerate(training[idx]):
-                            if entry==1:
+                            if entry == 1:
                                 j_list.append(j)
                                 bag[j] = 1
                 with open("j_list.txt", "a") as file:
@@ -130,7 +137,8 @@ for gruppe in gruppenliste:
     training = torch.tensor(training).float().to(device)
     output = torch.tensor(output).float().to(device)
 
-    training = torch.cat((training, torch.zeros(int(len(training)/3), training.shape[1]).to(device)))
+    training = torch.cat((training, torch.zeros(
+        int(len(training)/3), training.shape[1]).to(device)))
     output = torch.cat((output, torch.zeros(int(len(output)/3), 3).to(device)))
     print(training.shape, output.shape)
 
@@ -141,7 +149,8 @@ for gruppe in gruppenliste:
 
     # Training
     loss_func = F.cross_entropy
-    n_epochs = 10000 # Meistens VIEL zu viele Epochen, kann früher abgebrochen werden, wenn sich nicht mehr viel ändert (oft weniger als 400)
+    # Meistens VIEL zu viele Epochen, kann früher abgebrochen werden, wenn sich nicht mehr viel ändert (oft weniger als 400)
+    n_epochs = 10000
     lossliste = torch.zeros(n_epochs)
 
     for epoch in trange(n_epochs):
@@ -152,11 +161,12 @@ for gruppe in gruppenliste:
         loss.backward()
         optimizer.step()
         lossliste[epoch] = loss.item()
-        if epoch%int(n_epochs/10)==0:
+        if epoch % int(n_epochs/10) == 0:
             print(epoch, loss.item())
-            print(torch.sum(torch.argmax(out, dim=-1) == output@torch.tensor([0.,1.,2.],).to(device)).item()/len(output))
+            print(torch.sum(torch.argmax(out, dim=-1) == output @
+                  torch.tensor([0., 1., 2.],).to(device)).item()/len(output))
     model.eval()
-    
+
     # Plotte Auswertungen
     plt.figure()
     plt.plot(lossliste.cpu().numpy())
@@ -171,8 +181,5 @@ for gruppe in gruppenliste:
 
     # Speichere Model und state_dict
     torch.save(model, f"{outputdir}/networks/{gruppe}_model.pt")
-    torch.save(model.state_dict(), f"{outputdir}/networks/state_dicts/{gruppe}.pt")
-
-    
-
-
+    torch.save(model.state_dict(),
+               f"{outputdir}/networks/state_dicts/{gruppe}.pt")
