@@ -18,7 +18,7 @@ import os
 import json
 from utils import Classifier # ACHTUNG: utils.py wird hier benötigt!
 
-projectdir = "cbpipe/"
+projectdir = "."
 inputdir = f"{projectdir}inputs/"
 outputdir = f"{projectdir}outputs/"
 

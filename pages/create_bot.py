@@ -4,7 +4,7 @@ import jsonschema
 from jsonschema import validate
 
 #input_path = "/tmp/inputs/"
-input_path = "cbpipe/inputs/"
+input_path = "inputs/"
 
 inputSchema = {
     "type": "object",

@@ -33,7 +33,7 @@ if __name__ == "__main__":
                         datefmt='%Y-%m-%d %H:%M:%S')
  
     # Set format for displaying path
-    path = "cbpipe/inputs/"
+    path = "inputs/"
     #path = "/tmp/inputs"
 
 # TODO Fix Path. Not possible to get notifications form mounted path on windows host. 
