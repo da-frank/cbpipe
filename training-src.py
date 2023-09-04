@@ -18,7 +18,7 @@ nltk.download('punkt')
 STEMMER = nltk.stem.lancaster.LancasterStemmer()
 
 
-projectdir = "."
+projectdir = "./"
 inputdir = f"{projectdir}inputs/"
 outputdir = f"{projectdir}outputs/"
 
