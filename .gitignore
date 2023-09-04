@@ -12,4 +12,6 @@ outputs/networks/*
 !outputs/networks/state_dicts/
 outputs/networks/state_dicts/*
 
+words/*
+
 !**/.gitkeep
