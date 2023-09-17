@@ -2,3 +2,4 @@ streamlit
 nltk
 torch
 matplotlib
+celery

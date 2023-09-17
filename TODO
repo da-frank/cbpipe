@@ -23,6 +23,13 @@
 
 - cistem
 
+## Celery
+
+- bei jedem aufruf objekt erstellen.
+    - verhindert race conditions etc
+- direkt durch streamlit aufrufen
+    - maybe cbpipe-scheduler überflüssig woohoo
+
 ## möglicherweise für daemon nötig:
 
 ```Python
@@ -34,3 +41,9 @@ runpy.run_module("streamlit", run_name="__main__")
 ```
 
 Infos: https://github.com/streamlit/streamlit/issues/5471#issuecomment-1341051365
+
+
+## start celery
+```
+docker run -d --name rabbitmq rabbitmq
+```

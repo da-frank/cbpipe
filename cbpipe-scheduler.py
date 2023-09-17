@@ -3,16 +3,8 @@ import time
 import logging
 from watchdog.observers import Observer, polling
 from watchdog.events import PatternMatchingEventHandler
-from celery import Celery
-
-# Initialize celery app
-app = Celery('tasks', broker='redis://localhost:6379/0')
-
-
-@app.task
-def train():
-    print("Training")
-    # TODO train model
+import tasks
+import trainer
 
 # class overriding PatternMatchingEventhandler on_created method
 class CustomHandler(PatternMatchingEventHandler):
@@ -21,6 +13,7 @@ class CustomHandler(PatternMatchingEventHandler):
         # Display the file created event TODO
         logging.info("File created: % s", event.src_path)
         # add training to celery queue
+        tasks.train.delay(event.src_path.split("/")[-1].split(".")[0])
 
     # on_modified event handler
     def on_modified(self, event):
@@ -48,7 +41,8 @@ if __name__ == "__main__":
     path = "inputs/"
     # path = "/tmp/inputs"
 
-# TODO Fix Path. Not possible to get notifications form mounted path on windows host.
+
+    trainer = trainer.Trainer("cistem") # can also be "lancaster"
 
     # initialize regex event handler to ignore ERROR.json files
     event_handler = CustomHandler(
