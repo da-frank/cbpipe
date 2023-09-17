@@ -1,5 +1,6 @@
 # main.py
 # Trainiert nacheinander alle Gruppenchatbots
+import sys
 from utils import Classifier  # ACHTUNG: utils.py wird hier benötigt!
 import json
 import os
@@ -33,6 +34,9 @@ trained = ['Gruppe', 'LuSo', 'MarzInator', 'Melinda', 'PommesBot',
 trained = []
 # gruppenliste = ["Supernet"]
 
+# if parameter exist in sys.argv, only train this bot
+if len(sys.argv) > 1:
+    gruppenliste = [sys.argv[1]]
 
 # Durchlaufe alle Gruppennamen und trainiere jeweils den Chatbot
 for gruppe in gruppenliste:

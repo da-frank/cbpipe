@@ -3,15 +3,24 @@ import time
 import logging
 from watchdog.observers import Observer, polling
 from watchdog.events import PatternMatchingEventHandler
+from celery import Celery
+
+# Initialize celery app
+app = Celery('tasks', broker='redis://localhost:6379/0')
+
+
+@app.task
+def train():
+    print("Training")
+    # TODO train model
 
 # class overriding PatternMatchingEventhandler on_created method
-
-
 class CustomHandler(PatternMatchingEventHandler):
     # on_created event handler
     def on_created(self, event):
         # Display the file created event TODO
         logging.info("File created: % s", event.src_path)
+        # add training to celery queue
 
     # on_modified event handler
     def on_modified(self, event):

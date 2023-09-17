@@ -1,15 +1,16 @@
 # TODO
 
 
-- Verzeichnis für .json kram
-- .json kram fressen und merken, was es schon gibt. txt file?
-- Verzeichnis für .pt kram
-- Chatbot vergleich .pt Verzeichnis auslesen. -> dropdown / textinput
-- Training richtig hinbekommen
+- Verzeichnis für .json kram DONE
+- .json kram fressen und merken, was es schon gibt. txt file? DONE
+- Verzeichnis für .pt kram DONE
+- Chatbot vergleich .pt Verzeichnis auslesen. -> dropdown / textinput DONE
+- Training richtig hinbekommen DONE
 - Obiges "fressen" so umsetzen, dass 
     - dinge richtig ans training übergeben werden;
     - richtig gescheduled wird,
     - grakas verwendet werden.
+    - IDEE: celery task queue. ggf. auch f. wathchdog
 - scheduler view
 
 ## Bonusaufgabe
