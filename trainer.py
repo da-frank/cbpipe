@@ -177,8 +177,3 @@ class Trainer():
         torch.save(model, f"{Trainer.outputdir}/networks/{gruppe}_model.pt")
         torch.save(model.state_dict(),
                 f"{Trainer.outputdir}/networks/state_dicts/{gruppe}.pt")
-
-
-if __name__ == "__main__":
-    t = Trainer("cistem")
-    t.train("asfdf")

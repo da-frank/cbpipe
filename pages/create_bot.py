@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import jsonschema
 from jsonschema import validate
+import tasks
 
 #input_path = "/tmp/inputs/"
 input_path = "inputs/"
@@ -105,6 +106,8 @@ with tab1:
             
             st.write("Daten wurden abgeschickt.")
 
+            tasks.train.delay(group_name, stemmer="cistem")
+
 with tab2:
     if 'blockUpload' not in st.session_state:
         st.session_state.blockUpload = True
@@ -143,3 +146,5 @@ with tab2:
         with open(f"{input_path}{group_name_upload}.json", "wb") as file:
             file.write(uploaded_file.getbuffer())
         st.write("Daten wurden abgeschickt.")
+
+        tasks.train.delay(group_name_upload, stemmer="cistem")
