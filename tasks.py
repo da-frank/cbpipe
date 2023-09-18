@@ -1,9 +1,9 @@
 from celery import Celery
 import trainer
 
-app = Celery('tasks', broker='pyamqp://guest@172.17.0.3//')
+app = Celery('tasks', broker='pyamqp://guest@rabbitmq//')
 
 @app.task
-def train(group):
+def train(group, stemmer="lancaster"):
     print(f"Training {group}")
-    train(group)
+    trainer.Trainer(stemmer=stemmer).train(group)

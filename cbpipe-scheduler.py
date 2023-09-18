@@ -13,7 +13,7 @@ class CustomHandler(PatternMatchingEventHandler):
         # Display the file created event TODO
         logging.info("File created: % s", event.src_path)
         # add training to celery queue
-        tasks.train.delay(event.src_path.split("/")[-1].split(".")[0])
+        tasks.train.delay(event.src_path.split("/")[-1].split(".")[0], stemmer)
 
     # on_modified event handler
     def on_modified(self, event):
@@ -41,8 +41,7 @@ if __name__ == "__main__":
     path = "inputs/"
     # path = "/tmp/inputs"
 
-
-    trainer = trainer.Trainer("cistem") # can also be "lancaster"
+    stemmer = "cistem" # can also be "lancaster"
 
     # initialize regex event handler to ignore ERROR.json files
     event_handler = CustomHandler(
