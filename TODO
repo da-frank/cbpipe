@@ -47,3 +47,22 @@ Infos: https://github.com/streamlit/streamlit/issues/5471#issuecomment-134105136
 ```
 docker run -d --name rabbitmq rabbitmq
 ```
+
+## 02.10.
+
+- distilbert umsetzen
+- kein dropdown
+- chatfunktion
+- fortschrittsanzeige
+- auswahl des models
+- supernet 
+- dockerfile mit discordbot generieren.
+- exportieren und runterladen !!!
+- warteschlange !!!
+- cross entropy loss acuracy oder plot anzeigen !!!
+- accuracy: argmax mit label vergleichen
+- (test des models mit melinda)
+
+```python
+torch.mean(torch.argmax(out, dim=-1) == labels).item()
+```
