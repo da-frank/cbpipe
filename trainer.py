@@ -10,15 +10,17 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 from tqdm.auto import trange
+from torch import Tensor
+from typing import List
 
-class Trainer():
+class Trainer:
 
-    projectdir = "./"
-    inputdir = f"{projectdir}inputs/"
-    outputdir = f"{projectdir}outputs/"
+    projectdir: str = "./"
+    inputdir: str = f"{projectdir}inputs/"
+    outputdir: str = f"{projectdir}outputs/"
 
-    def __init__(self, stemmer="lancaster"):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+    def __init__(self, stemmer="lancaster") -> "Trainer":
+        self.device: str = "cuda" if torch.cuda.is_available() else "cpu"
         print(self.device)
 
         nltk.download('punkt')
@@ -32,32 +34,31 @@ class Trainer():
             print("Stemmer nicht gefunden")
             sys.exit()
 
-    def train(self, gruppe):
+    def train(self, gruppe: str) -> None:
 
         print(20*"-", "Training", gruppe, 20*"-")
         # Lade Trainingsdaten in den Arbeitsspeicher
         with open(f"{Trainer.inputdir}{gruppe}.json", encoding="utf-8") as file:
-            intentsdata = json.load(file)
+            intentsdata: json = json.load(file)
             # print(intentsdata)
         # Lade Stopwords, falls sie existieren (die werden ignoriert)
         with open(f"{Trainer.projectdir}stopwords.txt", "r", encoding="utf-8") as file:
             # Allgemeine Stopwords
-            stopwords = [w.replace("\n", "").strip()
-                        for w in file.readlines() if w != "" or w != "\n"]
+            #stopwords: list[str] = [w.replace("\n", "").strip()
+            #            for w in file.readlines() if w != "" or w != "\n"]
+            stopwords: List[str] = filter(None, file.read().splitlines().strip())
         if f"{gruppe}_stop.txt" in os.listdir(f"{Trainer.inputdir}stopwords"):
             with open(f"{Trainer.inputdir}stopwords/{gruppe}_stop.txt", "r", encoding="utf-8") as file:
                 # Gruppeneigene Stopwords
-                stopwords.extend([w.replace("\n", "").strip()
-                                for w in file.readlines() if w != "" or w != "\n"])
-                stopwords = list(set(stopwords))
+                stopwords.extend(filter(None, file.read().splitlines().strip()))
         stopwords = list(set([w.lower() for w in stopwords]))
 
         # Generiere Trainingsdaten
-        words = []  # Liste bekannter Wörter in Tokenform
-        labels = []  # zugehöriges Label (good, bad, neutral)
+        words: List[str] = []  # Liste bekannter Wörter in Tokenform
+        labels: List[str] = []  # zugehöriges Label (good, bad, neutral)
         # Liste aller Sätze im Datensatz (anders als words, da words nur einzelne Wörter enthält)
-        docs_x = []
-        docs_y = []  # Label zu docs_x
+        docs_x: List[str] = []
+        docs_y: List[str] = []  # Label zu docs_x
         for intent in intentsdata["intents"]:
             for pattern in intent["patterns"]:
                 wrds = nltk.word_tokenize(pattern)
@@ -70,43 +71,45 @@ class Trainer():
 
         print(len(words))
         # Stopwords aus words entfernen
-        words = [w.lower() for w in words if not w.lower() in stopwords]
+        words: List[str] = [w.lower() for w in words if not w.lower() in stopwords]
         # Token in Wortstämme umwandeln
-        words = [self.STEMMER.stem(w.lower()) for w in words if w != "?"]
-        words = sorted(list(set(words)))  # list(set(...)) löscht doppelte Einträge
+        words: List[str] = [self.STEMMER.stem(w.lower()) for w in words if w != "?"]
+        words: List[str] = sorted(list(set(words)))  # list(set(...)) löscht doppelte Einträge
         print(len(words))
 
         with open(f"{Trainer.projectdir}words/{gruppe}_words.txt", "w", encoding="utf-8") as file:
             # Speichere bekannte Wörter ab
             file.writelines([w+"\n" for w in words])
-        labels = sorted(labels)
+        labels: List[str] = sorted(labels)
         print(labels)
         print(len(words))
 
         # Trainingsdaten vorbereiten
-        training = []
-        output = []
-        out_empty = [0 for _ in range(len(labels))]  # Lange Liste mit Nullen
+        training: List[int] = []
+        output: List[List[int]] = []
+        out_empty: List[int] = [0 for _ in range(len(labels))]  # Lange Liste mit Nullen
 
         for x, doc in enumerate(docs_x):
-            bag = []
-            wrds = [self.STEMMER.stem(w.lower()) for w in doc]
+            # bag: list[int] = []
+            wrds: List[str] = [self.STEMMER.stem(w.lower()) for w in doc]
 
-            for w in words:
-                if w in wrds:
-                    bag.append(1)
-                else:
-                    bag.append(0)
+            # for w in words:
+            #     if w in wrds:
+            #         bag.append(1)
+            #     else:
+            #         bag.append(0)
 
-            output_row = out_empty[:]
+            bag: List[int] = [1 if w in wrds else 0 for w in words]
+
+            output_row: List[int] = out_empty[:]
             output_row[labels.index(docs_y[x])] = 1
             training.append(bag)
             output.append(output_row)
 
         # Supernet wird auf den Trainingsdaten ALLER Gruppen trainiert (alt)
         if gruppe == "Supernet":
-            N = len(training)
-            n_klasse = 400
+            N: int = len(training)
+            n_klasse: int = 400
 
             for n in [3, 4, 5, 6]:
                 for i in range(3*n_klasse):
@@ -114,9 +117,9 @@ class Trainer():
                     output_row[i//n_klasse] = 1
                     output.append(output_row)
                     bag = [0 for _ in range(len(training[0]))]
-                    idx = 0
-                    idx_list = []
-                    j_list = []
+                    idx: int = 0
+                    idx_list: List = [] # kann doch eigentlich weg, oder??
+                    j_list: List[int] = []
                     while sum(bag) < n and idx not in idx_list:
                         idx = torch.randint(N, (1,)).item()
                         if output[idx].index(1) == i//n_klasse:
@@ -137,21 +140,21 @@ class Trainer():
         print(training.shape, output.shape)
 
         # Initialisiere MLP (siehe utils.py) und Optimizer (hier Adam)
-        model = Classifier([len(words), int(len(words)/2), len(labels)]).to(self.device)
+        model: Classifier = Classifier([len(words), int(len(words)/2), len(labels)]).to(self.device)
         print(model)
-        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+        optimizer: optim.Adam = optim.Adam(model.parameters(), lr=1e-3)
 
         # Training
         loss_func = F.cross_entropy
         # Meistens VIEL zu viele Epochen, kann früher abgebrochen werden, wenn sich nicht mehr viel ändert (oft weniger als 400)
-        n_epochs = 10000
-        lossliste = torch.zeros(n_epochs)
+        n_epochs: int = 10000
+        lossliste: Tensor = torch.zeros(n_epochs)
 
         for epoch in trange(n_epochs):
             # Standard-Trainingsloop
             optimizer.zero_grad()
             out = model(training)
-            loss = loss_func(out, output)
+            loss: Tensor = loss_func(out, output)
             loss.backward()
             optimizer.step()
             lossliste[epoch] = loss.item()

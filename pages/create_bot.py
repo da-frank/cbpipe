@@ -3,11 +3,12 @@ import json
 import jsonschema
 from jsonschema import validate
 import tasks
+from typing import List, Any
 
 #input_path = "/tmp/inputs/"
-input_path = "inputs/"
+input_path: str = "inputs/"
 
-inputSchema = {
+inputSchema: jsonschema = {
     "type": "object",
     "properties": {
         "intents": {
@@ -33,14 +34,13 @@ inputSchema = {
     "required": ["intents"]
 }
 
-def get_list_of_words(words):
-    output = words.split("\n")
-    output = [word.strip() for word in output]
-    output = list(filter(None, output))
+def get_list_of_words(words: str) -> list[str]:
+    output: List[str] = [word.strip() for word in words.split("\n")]
+    output: List[str] = list(filter(None, output))
     return output
 
-def get_dict(tag, patterns):
-    json_dict = {
+def get_dict(tag: str, patterns: dict) -> dict[str, Any]:
+    json_dict: dict[str, Any] = {
         "tag": tag,
         "patterns": patterns,
         "responses": [],
@@ -48,15 +48,16 @@ def get_dict(tag, patterns):
     }
     return json_dict
 
-def submit():
-    st.write("Daten wurden abgeschickt.")
-    st.session_state.isSubmitted = True
-    st.session_state.group_name = uploaded_file.name.split(".")[0]
-    st.session_state.good_words = data["intents"][0]["patterns"]
-    st.session_state.neutral_words = data["intents"][1]["patterns"]
-    st.session_state.bad_words = data["intents"][2]["patterns"]
+# def submit() -> None:
+#     st.write("Daten wurden abgeschickt.")
+#     st.session_state.isSubmitted = True
+#     st.session_state.group_name = uploaded_file.name.split(".")[0]
+#     st.session_state.good_words = data["intents"][0]["patterns"]
+#     st.session_state.neutral_words = data["intents"][1]["patterns"]
+#     st.session_state.bad_words = data["intents"][2]["patterns"]
 
 st.write("## 4. Create your own Chatbot")
+
 
 st.markdown(
     """Vergebt zunächst bitte einen Gruppennamen, der aus mindestens einem Zeichen und nur Buchstaben (ohne Sonderzeichen, Zahlen, Leerzeichen) besteht. 
@@ -69,35 +70,35 @@ st.markdown(
     **Hinweis**: Die einzelnen Eingaben müssen durch Zeilenumbrüche getrennt sein."""
 )
 
-tab1, tab2 = st.tabs(["Eingabe", "Upload"])
+tab_input, tab_upload = st.tabs(["Eingabe", "Upload"])
 
-with tab1:
+with tab_input:
     with st.form("data_for_own_chatbot", clear_on_submit=False):
-        group_name = st.text_input("Gruppenname")
+        group_name: str = st.text_input("Gruppenname")
         st.markdown("---")
-        good_words = st.text_area("Gute Wörter", value="Mir geht es gut")
+        good_words: str = st.text_area("Gute Wörter", value="Mir geht es gut")
         st.markdown("---")
-        neutral_words = st.text_area("Neutrale Wörter", value="so lala")
+        neutral_words: str = st.text_area("Neutrale Wörter", value="so lala")
         st.markdown("---")
-        bad_words = st.text_area("Schlechte Wörter", value="Mir geht es schlecht")
+        bad_words: str = st.text_area("Schlechte Wörter", value="Mir geht es schlecht")
         st.markdown("---")
-        submit = st.form_submit_button("Abschicken")
+        submit: bool = st.form_submit_button("Abschicken")
 
     if submit:
-        group_name = group_name.strip()
-        if (not group_name) or (not group_name.isalpha()):
+        group_name: str = group_name.strip()
+        if (not group_name) or (not group_name.isalnum()):
             st.error("ERROR: Vergebt bitte einen Gruppennamen, der aus mindestens einem Zeichen und nur Buchstaben (ohne Sonderzeichen, Zahlen, Leerzeichen) besteht.")
             
         else:
-            list_good = get_list_of_words(good_words)
-            list_neutral = get_list_of_words(neutral_words)
-            list_bad = get_list_of_words(bad_words)
+            list_good: List[str] = get_list_of_words(good_words)
+            list_neutral: List[str] = get_list_of_words(neutral_words)
+            list_bad: List[str] = get_list_of_words(bad_words)
 
-            good_dict = get_dict("good words", list_good)
-            neutral_dict = get_dict("neutral words", list_neutral)
-            bad_dict = get_dict("bad words", list_bad)
+            good_dict: dict[str, Any] = get_dict("good words", list_good)
+            neutral_dict: dict[str, Any] = get_dict("neutral words", list_neutral)
+            bad_dict: dict[str, Any] = get_dict("bad words", list_bad)
 
-            intents_dict = {
+            intents_dict: dict[str, list[dict[str, Any]]] = {
                 "intents": [good_dict, neutral_dict, bad_dict],
             }
 
@@ -108,7 +109,7 @@ with tab1:
 
             tasks.train.delay(group_name, stemmer="cistem")
 
-with tab2:
+with tab_upload:
     if 'blockUpload' not in st.session_state:
         st.session_state.blockUpload = True
 
@@ -119,9 +120,9 @@ with tab2:
     st.write("Lade eine Datei hoch, die die Daten enthält. Der Name der Datei wird als Gruppenname verwendet.")
     uploaded_file = st.file_uploader("Datei hochladen", type=["json"])
     if uploaded_file is not None:
-        group_name_upload = uploaded_file.name.split(".")[0].strip()
+        group_name_upload: str = uploaded_file.name.split(".")[0].strip()
         st.write("Der Gruppenname ist: ", group_name_upload)
-        if (not group_name_upload) or (not group_name_upload.isalpha()):
+        if (not group_name_upload) or (not group_name_upload.isalnum()):
             st.error("ERROR: Vergebt bitte einen Gruppennamen, der aus mindestens einem Zeichen und nur Buchstaben (ohne Sonderzeichen, Zahlen, Leerzeichen) besteht.")
             st.session_state.blockUpload = True
         
@@ -141,7 +142,7 @@ with tab2:
     st.markdown("---")
     st.write("### Abschicken")
     st.write("Wenn ihr mit den Daten zufrieden seid, könnt ihr sie abschicken.")
-    submit = st.button("Abschicken", disabled=st.session_state.blockUpload)
+    submit: bool = st.button("Abschicken", disabled=st.session_state.blockUpload)
     if submit:
         with open(f"{input_path}{group_name_upload}.json", "wb") as file:
             file.write(uploaded_file.getbuffer())
