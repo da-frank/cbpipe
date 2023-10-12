@@ -93,3 +93,9 @@ if submit:
 
     # st.sidebar.image("./images/Logo_Uni_Luebeck_600dpi.png", use_column_width=True)
     # st.sidebar.image("./images/Logo_UKT.png", use_column_width=True)
+
+st.markdown("---")
+
+st.markdown("### Performce des Bots")
+
+# hier die performancewerte anzeigen

@@ -8,7 +8,7 @@ from typing import List, Any
 #input_path = "/tmp/inputs/"
 input_path: str = "inputs/"
 
-inputSchema: jsonschema = {
+inputSchema = {
     "type": "object",
     "properties": {
         "intents": {
@@ -34,12 +34,12 @@ inputSchema: jsonschema = {
     "required": ["intents"]
 }
 
-def get_list_of_words(words: str) -> list[str]:
+def get_list_of_words(words: str) -> List[str]:
     output: List[str] = [word.strip() for word in words.split("\n")]
     output: List[str] = list(filter(None, output))
     return output
 
-def get_dict(tag: str, patterns: dict) -> dict[str, Any]:
+def get_dict(tag: str, patterns: List[str]) -> dict[str, Any]:
     json_dict: dict[str, Any] = {
         "tag": tag,
         "patterns": patterns,
@@ -107,6 +107,16 @@ with tab_input:
             
             st.write("Daten wurden abgeschickt.")
 
+            # offer file for download
+            with open(f"{input_path}{group_name}.json", "rb") as file:
+                fileContent: bytes = file.read()
+                st.download_button(
+                    label="Download",
+                    data=fileContent,
+                    file_name=f"{group_name}.json",
+                    mime="application/json",
+                )
+
             tasks.train.delay(group_name, stemmer="cistem")
 
 with tab_upload:
@@ -119,6 +129,7 @@ with tab_upload:
     #st.markdown("---")
     st.write("Lade eine Datei hoch, die die Daten enthält. Der Name der Datei wird als Gruppenname verwendet.")
     uploaded_file = st.file_uploader("Datei hochladen", type=["json"])
+    group_name_upload: str = ""
     if uploaded_file is not None:
         group_name_upload: str = uploaded_file.name.split(".")[0].strip()
         st.write("Der Gruppenname ist: ", group_name_upload)
@@ -134,7 +145,7 @@ with tab_upload:
                 validate(instance=data, schema=inputSchema)
                 st.session_state.blockUpload = False
                 
-            except jsonschema.exceptions.ValidationError as err:
+            except jsonschema.ValidationError as err:
                 st.error("ERROR: Die Daten entsprechen nicht den Vorgaben. Bitte überprüft sie noch einmal.")
                 st.error(err)
                 st.session_state.blockUpload = True
@@ -144,8 +155,13 @@ with tab_upload:
     st.write("Wenn ihr mit den Daten zufrieden seid, könnt ihr sie abschicken.")
     submit: bool = st.button("Abschicken", disabled=st.session_state.blockUpload)
     if submit:
-        with open(f"{input_path}{group_name_upload}.json", "wb") as file:
-            file.write(uploaded_file.getbuffer())
-        st.write("Daten wurden abgeschickt.")
+        if uploaded_file is not None:
+            with open(f"{input_path}{group_name_upload}.json", "wb") as file:
+                file.write(uploaded_file.getbuffer())
+            st.write("Daten wurden abgeschickt.")
 
-        tasks.train.delay(group_name_upload, stemmer="cistem")
+            tasks.train.delay(group_name_upload, stemmer="cistem")
+        else:
+            st.error("ERROR: Es wurde keine Datei hochgeladen.")
+
+    

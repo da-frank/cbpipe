@@ -11,7 +11,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from tqdm.auto import trange
 from torch import Tensor
-from typing import List
+from typing import List, Any
 
 class Trainer:
 
@@ -19,7 +19,7 @@ class Trainer:
     inputdir: str = f"{projectdir}inputs/"
     outputdir: str = f"{projectdir}outputs/"
 
-    def __init__(self, stemmer="lancaster") -> "Trainer":
+    def __init__(self, stemmer="lancaster"):
         self.device: str = "cuda" if torch.cuda.is_available() else "cpu"
         print(self.device)
 
@@ -27,9 +27,9 @@ class Trainer:
 
         # STEMMER (hier am besten Cistem statt Lancaster)
         if stemmer == "lancaster":
-            self.STEMMER = nltk.stem.lancaster.LancasterStemmer()
+            self.STEMMER = nltk.stem.LancasterStemmer()
         elif stemmer == "cistem":
-            self.STEMMER = nltk.stem.cistem.Cistem()
+            self.STEMMER = nltk.stem.Cistem()
         else:
             print("Stemmer nicht gefunden")
             sys.exit()
@@ -39,29 +39,29 @@ class Trainer:
         print(20*"-", "Training", gruppe, 20*"-")
         # Lade Trainingsdaten in den Arbeitsspeicher
         with open(f"{Trainer.inputdir}{gruppe}.json", encoding="utf-8") as file:
-            intentsdata: json = json.load(file)
+            intentsdata: Any = json.load(file)
             # print(intentsdata)
         # Lade Stopwords, falls sie existieren (die werden ignoriert)
         with open(f"{Trainer.projectdir}stopwords.txt", "r", encoding="utf-8") as file:
             # Allgemeine Stopwords
-            #stopwords: list[str] = [w.replace("\n", "").strip()
-            #            for w in file.readlines() if w != "" or w != "\n"]
-            stopwords: List[str] = filter(None, file.read().splitlines().strip())
+            stopwords: list[str] = [w.replace("\n", "").strip()
+                        for w in file.readlines() if w != "" or w != "\n"]
         if f"{gruppe}_stop.txt" in os.listdir(f"{Trainer.inputdir}stopwords"):
             with open(f"{Trainer.inputdir}stopwords/{gruppe}_stop.txt", "r", encoding="utf-8") as file:
                 # Gruppeneigene Stopwords
-                stopwords.extend(filter(None, file.read().splitlines().strip()))
+                stopwords.extend([w.replace("\n", "").strip()
+                            for w in file.readlines() if w != "" or w != "\n"])
         stopwords = list(set([w.lower() for w in stopwords]))
 
         # Generiere Trainingsdaten
-        words: List[str] = []  # Liste bekannter Wörter in Tokenform
-        labels: List[str] = []  # zugehöriges Label (good, bad, neutral)
+        words = []  # Liste bekannter Wörter in Tokenform
+        labels = []  # zugehöriges Label (good, bad, neutral)
         # Liste aller Sätze im Datensatz (anders als words, da words nur einzelne Wörter enthält)
-        docs_x: List[str] = []
-        docs_y: List[str] = []  # Label zu docs_x
+        docs_x = []
+        docs_y = []  # Label zu docs_x
         for intent in intentsdata["intents"]:
             for pattern in intent["patterns"]:
-                wrds = nltk.word_tokenize(pattern)
+                wrds: List[str] = nltk.word_tokenize(pattern)
                 words.extend(wrds)
                 docs_x.append(wrds)
                 docs_y.append(intent["tag"])
@@ -85,8 +85,8 @@ class Trainer:
         print(len(words))
 
         # Trainingsdaten vorbereiten
-        training: List[int] = []
-        output: List[List[int]] = []
+        training = []
+        output = []
         out_empty: List[int] = [0 for _ in range(len(labels))]  # Lange Liste mit Nullen
 
         for x, doc in enumerate(docs_x):
@@ -99,7 +99,7 @@ class Trainer:
             #     else:
             #         bag.append(0)
 
-            bag: List[int] = [1 if w in wrds else 0 for w in words]
+            bag = [1 if w in wrds else 0 for w in words]
 
             output_row: List[int] = out_empty[:]
             output_row[labels.index(docs_y[x])] = 1
@@ -117,7 +117,7 @@ class Trainer:
                     output_row[i//n_klasse] = 1
                     output.append(output_row)
                     bag = [0 for _ in range(len(training[0]))]
-                    idx: int = 0
+                    idx = 0
                     idx_list: List = [] # kann doch eigentlich weg, oder??
                     j_list: List[int] = []
                     while sum(bag) < n and idx not in idx_list:
