@@ -99,3 +99,7 @@ st.markdown("---")
 st.markdown("### Performce des Bots")
 
 # hier die performancewerte anzeigen
+# show plot of loss and logloss
+st.image([f"outputs/plots/{current_group.name}_loss.png",
+          f"outputs/plots/{current_group.name}_logloss.png"],
+         caption=["loss", "log loss"], use_column_width="auto")
