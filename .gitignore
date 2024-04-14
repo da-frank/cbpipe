@@ -9,6 +9,8 @@ outputs/*
 outputs/plots/*
 !outputs/networks/
 outputs/networks/*
+!outputs/losses/
+outputs/losses/*
 !outputs/networks/state_dicts/
 outputs/networks/state_dicts/*
 

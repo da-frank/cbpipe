@@ -1,9 +1,11 @@
+import numpy as np
 import streamlit as st
 import nltk
 import os
 from random import randint
 
 import pandas as pd
+import torch
 
 from models import Netpicker
 
@@ -52,12 +54,14 @@ table_current_group_input = chatbot_option + "user_table_entries"
 table_current_group_good = chatbot_option + "good_table_entries"
 table_current_group_bad = chatbot_option + "bad_table_entries"
 table_current_group_neutral = chatbot_option + "neutral_table_entries"
+table_current_group_entropy = chatbot_option + "entropy_table_entries"
 if table_current_group_input not in st.session_state:
     # st.write("Group not in session state")
     st.session_state[table_current_group_input] = []
     st.session_state[table_current_group_good] = []
     st.session_state[table_current_group_bad] = []
     st.session_state[table_current_group_neutral] = []
+    st.session_state[table_current_group_entropy] = []
 
 st.markdown("---")
 
@@ -71,11 +75,14 @@ st.markdown("---")
 
 if submit:
     result = current_group.predict(user_input)
+    #calculate shannon entropy of result
+    shannon_entropy = -sum([p.item() * np.log2(p.item()) for p in result])
 
     st.session_state[table_current_group_input].append(user_input)
     st.session_state[table_current_group_good].append(result[1].item())
     st.session_state[table_current_group_bad].append(result[0].item())
     st.session_state[table_current_group_neutral].append(result[2].item())
+    st.session_state[table_current_group_entropy].append(shannon_entropy)
 
     st.markdown("Details zu Antwort")
     result_table = {
@@ -83,6 +90,7 @@ if submit:
         "gut": st.session_state[table_current_group_good],
         "schlecht": st.session_state[table_current_group_bad],
         "neutral": st.session_state[table_current_group_neutral],
+        "Shannon Entropy": st.session_state[table_current_group_entropy]
     }
 
     result_table = pd.DataFrame.from_dict(result_table)
@@ -103,3 +111,8 @@ st.markdown("### Performce des Bots")
 st.image([f"outputs/plots/{current_group.name}_loss.png",
           f"outputs/plots/{current_group.name}_logloss.png"],
          caption=["loss", "log loss"], use_column_width="auto")
+
+# show table of losses
+st.markdown("### Losses")
+losses = torch.load(f"outputs/losses/{current_group.name}_losses.pt")
+st.line_chart(losses.numpy())

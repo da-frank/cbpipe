@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import nltk
-STEMMER = nltk.stem.lancaster.LancasterStemmer()
+#STEMMER = nltk.stem.lancaster.LancasterStemmer()
+STEMMER = nltk.stem.Cistem()
 nltk.download('punkt')
 
 import os

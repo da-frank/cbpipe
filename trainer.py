@@ -164,6 +164,11 @@ class Trainer:
                     torch.tensor([0., 1., 2.],).to(self.device)).item()/len(output))
         model.eval()
 
+        # speichere lossliste ab
+        print("Speichere losses")
+        print(f"{Trainer.outputdir}losses/{gruppe}_losses.pt")
+        torch.save(lossliste, f"{Trainer.outputdir}losses/{gruppe}_losses.pt")
+
         # Plotte Auswertungen
         plt.figure()
         plt.plot(lossliste.cpu().numpy())
@@ -175,6 +180,7 @@ class Trainer:
         plt.title(f"Loglosses {gruppe}")
         plt.grid()
         plt.savefig(f"{Trainer.outputdir}plots/{gruppe}_logloss.png")
+
 
         # Speichere Model und state_dict
         torch.save(model, f"{Trainer.outputdir}/networks/{gruppe}_model.pt")

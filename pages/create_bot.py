@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import json
 import jsonschema
@@ -103,7 +104,7 @@ with tab_input:
             }
 
             with open(f"{input_path}{group_name}.json", "w") as file:
-                json.dump(intents_dict, file)
+                json.dump(intents_dict, file, ensure_ascii=False, indent=4)
             
             st.write("Daten wurden abgeschickt.")
 
@@ -122,6 +123,17 @@ with tab_input:
 with tab_upload:
     if 'blockUpload' not in st.session_state:
         st.session_state.blockUpload = True
+
+    st.write("## Template")
+    st.write("Hier könnt ihr euch ein Template herunterladen, um eure Daten in das richtige Format zu bringen. Bitte achtet darauf, die Datei mit Eurem Gruppennamen umzubenennen.")
+    with open("template.json", "rb") as file:
+        fileContent: bytes = file.read()
+        st.download_button(
+            label="Download Template",
+            data=fileContent,
+            file_name="template.json",
+            mime="application/json",
+        )
 
     #with st.form("upload_for_own_chatbot", clear_on_submit=False):
     st.write("### Upload")

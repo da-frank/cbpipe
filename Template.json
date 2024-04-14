@@ -1,0 +1,31 @@
+{
+    "intents": [
+        {
+            "tag": "good words",
+            "patterns": [
+                "Hier gute Wörter einfügen.",
+                "Zweites gutes Wort."
+            ],
+            "responses": [],
+            "context_set": ""
+        },
+        {
+            "tag": "neutral words",
+            "patterns": [
+                "Hier neutrale Wörter einfügen",
+                "Zweites neutrales Wort."
+            ],
+            "responses": [],
+            "context_set": ""
+        },
+        {
+            "tag": "bad words",
+            "patterns": [
+                "Hier schlechte Wörter einfügen.",
+                "Zweites schlechtes Wort."
+            ],
+            "responses": [],
+            "context_set": ""
+        }
+    ]
+}
