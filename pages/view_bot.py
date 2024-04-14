@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 import streamlit as st
 import nltk
@@ -6,6 +7,8 @@ from random import randint
 
 import pandas as pd
 import torch
+
+import altair as alt
 
 from models import Netpicker
 
@@ -106,13 +109,9 @@ st.markdown("---")
 
 st.markdown("### Performce des Bots")
 
-# hier die performancewerte anzeigen
-# show plot of loss and logloss
-st.image([f"outputs/plots/{current_group.name}_loss.png",
-          f"outputs/plots/{current_group.name}_logloss.png"],
-         caption=["loss", "log loss"], use_column_width="auto")
-
-# show table of losses
-st.markdown("### Losses")
+# show plot of losses and loglosses
 losses = torch.load(f"outputs/losses/{current_group.name}_losses.pt")
+st.write("#### Losses")
 st.line_chart(losses.numpy())
+st.write("#### Loglosses")
+st.line_chart(torch.log(losses).cpu().numpy())
