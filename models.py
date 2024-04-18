@@ -61,7 +61,7 @@ def Netpicker(name):
     elif name=="Mogelnet":
         net = Mogelnet()
     else:
-        net = Gruppe(name)
+        net = Gruppe("".join(name.split("_")[:-1]), suffix=name.split("_")[-1])
     return net
 
 def entropy(liste):
@@ -135,7 +135,7 @@ class Gruppe():
         self.suffix = suffix
 
         with open(
-            PATHWORDS + self.name + self.suffix + "_words.txt", "r", encoding="utf-8"
+            PATHWORDS + self.name + "_" + self.suffix + "_words.txt", "r", encoding="utf-8"
         ) as file:
             self.words = [w.replace("\n", "").strip() for w in file.readlines() if w != "" or w != "\n"]
         
@@ -158,7 +158,7 @@ class Gruppe():
         #self.network = torch.load(PATHNET + self.name + self.suffix + "_model.pt")
         self.network = Classifier(dims=[len(self.words), int(len(self.words) / 2), 3])
         self.network.load_state_dict(
-            torch.load(PATHNET + self.name + self.suffix + ".pt", map_location=torch.device("cpu"))
+            torch.load(PATHNET + self.name + "_" + self.suffix + ".pt", map_location=torch.device("cpu"))
         )
 
     def predict(self, input):

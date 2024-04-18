@@ -34,7 +34,7 @@ class Trainer:
             print("Stemmer nicht gefunden")
             sys.exit()
 
-    def train(self, gruppe: str) -> None:
+    def train(self, gruppe: str) -> None: # Gruppe ist hier Gruppenname_Zeitstempel
 
         print(20*"-", "Training", gruppe, 20*"-")
         # Lade Trainingsdaten in den Arbeitsspeicher

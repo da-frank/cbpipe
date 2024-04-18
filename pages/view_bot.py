@@ -41,17 +41,27 @@ st.markdown(
 st.markdown("---")
 
 # get list of groups from inputs directory
-group_list_dropdown = [name.split(".")[0]
+group_list_dropdown = ["".join(name.split("_")[:-1])
                        for name in os.listdir(inputdir) if "json" in name]
 
+if len(group_list_dropdown) == 0:
+    st.write("Kein ChatBot vorhanden. Bitte erstelle einen ChatBot.")
+    st.stop()
+
 chatbot_option = st.selectbox(
-    "ChatBot Auswahl",
+    "ChatBot auswählen",
     group_list_dropdown,
+)
+
+timestamp = st.selectbox(
+    "Version auswählen",
+    [name.split("_")[-1].split(".")[0]
+     for name in os.listdir(inputdir) if chatbot_option in name],
 )
 
 # TODO take Gruppe(...) instead of Testgruppe
 print("Loading", chatbot_option)
-current_group = Netpicker(chatbot_option)
+current_group = Netpicker(chatbot_option+"_"+timestamp)
 
 table_current_group_input = chatbot_option + "user_table_entries"
 table_current_group_good = chatbot_option + "good_table_entries"
@@ -110,7 +120,7 @@ st.markdown("---")
 st.markdown("### Performce des Bots")
 
 # show plot of losses and loglosses
-losses = torch.load(f"outputs/losses/{current_group.name}_losses.pt")
+losses = torch.load(f"outputs/losses/{current_group.name}_{current_group.suffix}_losses.pt")
 st.write("#### Losses")
 st.line_chart(losses.numpy())
 st.write("#### Loglosses")

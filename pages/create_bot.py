@@ -8,6 +8,7 @@ from typing import List, Any
 
 #input_path = "/tmp/inputs/"
 input_path: str = "inputs/"
+timestampformat: str = "%Y-%m-%d-%H-%M-%S"
 
 inputSchema = {
     "type": "object",
@@ -83,6 +84,8 @@ with tab_input:
         st.markdown("---")
         bad_words: str = st.text_area("Schlechte Wörter", value="Mir geht es schlecht")
         st.markdown("---")
+        distilbert: bool = st.checkbox("DistilBERT verwenden", value=False)
+        st.markdown("---")
         submit: bool = st.form_submit_button("Abschicken")
 
     if submit:
@@ -103,13 +106,18 @@ with tab_input:
                 "intents": [good_dict, neutral_dict, bad_dict],
             }
 
-            with open(f"{input_path}{group_name}.json", "w") as file:
+            # human readable timestamp
+            timestamp: str = time.strftime(timestampformat)
+            if distilbert:
+                timestamp += "-distilBERT"
+
+            with open(f"{input_path}{group_name}_{timestamp}.json", "w") as file:
                 json.dump(intents_dict, file, ensure_ascii=False, indent=4)
             
             st.write("Daten wurden abgeschickt.")
 
             # offer file for download
-            with open(f"{input_path}{group_name}.json", "rb") as file:
+            with open(f"{input_path}{group_name}_{timestamp}.json", "rb") as file:
                 fileContent: bytes = file.read()
                 st.download_button(
                     label="Download",
@@ -118,14 +126,17 @@ with tab_input:
                     mime="application/json",
                 )
 
-            tasks.train.delay(group_name, stemmer="cistem")
+            if distilbert:
+                tasks.train_distilbert.delay(group_name, timestamp)
+            else:
+                tasks.train.delay(group_name, timestamp, stemmer="cistem")
 
 with tab_upload:
     if 'blockUpload' not in st.session_state:
         st.session_state.blockUpload = True
 
     st.write("## Template")
-    st.write("Hier könnt ihr euch ein Template herunterladen, um eure Daten in das richtige Format zu bringen. Bitte achtet darauf, die Datei mit Eurem Gruppennamen umzubenennen.")
+    st.write("Hier könnt ihr euch ein Template herunterladen, um eure Daten in das richtige Format zu bringen. Bitte achtet darauf, die Datei in Eurem Gruppennamen umzubenennen.")
     with open("template.json", "rb") as file:
         fileContent: bytes = file.read()
         st.download_button(
@@ -163,16 +174,27 @@ with tab_upload:
                 st.session_state.blockUpload = True
                 #raise err
     st.markdown("---")
+    distilbert: bool = st.checkbox("DistilBERT verwenden", value=False)
+    st.markdown("---")
     st.write("### Abschicken")
     st.write("Wenn ihr mit den Daten zufrieden seid, könnt ihr sie abschicken.")
     submit: bool = st.button("Abschicken", disabled=st.session_state.blockUpload)
     if submit:
+
         if uploaded_file is not None:
-            with open(f"{input_path}{group_name_upload}.json", "wb") as file:
+
+            timestamp: str = time.strftime(timestampformat)
+            if distilbert:
+                timestamp += "-distilBERT"
+
+            with open(f"{input_path}{group_name_upload}_{timestamp}.json", "wb") as file:
                 file.write(uploaded_file.getbuffer())
             st.write("Daten wurden abgeschickt.")
 
-            tasks.train.delay(group_name_upload, stemmer="cistem")
+            if distilbert:
+                tasks.train_distilbert.delay(group_name_upload, timestamp)
+            else:
+                tasks.train.delay(group_name_upload, timestamp, stemmer="cistem")
         else:
             st.error("ERROR: Es wurde keine Datei hochgeladen.")
 

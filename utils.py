@@ -1,6 +1,11 @@
+# utils.py
+# - Enthält Hilfsfunktionen für das Training und die Evaluation des Modells
+
 import torch
+import json
 import nltk
 import torch.nn as nn
+from random import shuffle
 
 
 class Classifier(nn.Module):
@@ -39,3 +44,65 @@ def bagofwords(s, words):
                 bag[i] = 1
         
     return torch.tensor(bag).float() 
+
+class Dataset(torch.utils.data.Dataset):
+    def __init__(self, model, tokenizer, name="melinda", timestamp="", train=True, split=0.8):
+        super().__init__()
+        with open(f"inputs/{name}_{timestamp}.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        labeldict = {"neutral words": 2, "bad words": 1, "good words": 0}
+        self.data = []
+        self.label = []
+        for d in data["intents"]:
+            temp = d["patterns"]
+            shuffle(temp)
+            if train:
+                self.data.extend(temp[:int(split*len(temp))])
+                self.label.append(torch.ones(len(d["patterns"]))[:int(split*len(temp))] * labeldict[d["tag"]])
+            else: 
+                self.data.extend(temp[int(split*len(temp)):])
+                self.label.append(torch.ones(len(d["patterns"]))[int(split*len(temp)):] * labeldict[d["tag"]])
+        self.label = torch.cat(self.label)
+        print(f"Good: {sum(self.label == 1)}, Bad: {sum(self.label == 0)}, Neutral: {sum(self.label == 2)}")
+
+        with torch.no_grad():
+            ttt = tokenizer(self.data, return_tensors="pt", padding=True, truncation=True)
+            self.data = model(ttt.input_ids, attention_mask=ttt.attention_mask).logits
+        
+    def __getitem__(self, idx):
+        return self.data[idx], self.label[idx]
+
+    def __len__(self):
+        return len(self.label)
+    
+
+class Dataset_Mogelbot(torch.utils.data.Dataset):
+    def __init__(self, model, tokenizer, name="mogelbot"):
+        super().__init__()
+        with open("data/{}.json".format(name), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        labeldict = {"neutral words": 2, "bad words": 1, "good words": 0}
+        self.data = []
+        self.label = []
+        for d in data["intents"]:
+            self.data.extend(d["patterns"])
+            self.label.append(torch.ones(len(d["patterns"])) * labeldict[d["tag"]])
+        self.label = torch.cat(self.label)
+        print(f"Good: {sum(self.label == 1)}, Bad: {sum(self.label == 0)}, Neutral: {sum(self.label == 2)}")
+
+        with torch.no_grad():
+            ttt = tokenizer(self.data, return_tensors="pt", padding=True, truncation=True, max_length=max([len(d) for d in self.label]))
+            self.data = model(ttt.input_ids, attention_mask=ttt.attention_mask).logits
+        
+    def __getitem__(self, idx):
+        return self.data[idx], self.label[idx]
+
+    def __len__(self):
+        return len(self.label)
+    
+if __name__ == '__main__':
+    ds = Dataset()
+    print(len(ds))
+    print(ds[100])
