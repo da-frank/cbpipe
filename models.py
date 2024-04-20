@@ -10,6 +10,8 @@ nltk.download('punkt')
 import os
 import json
 
+import distilbert
+
 PATHDATA = "./"
 PATHSTOP = "./" # PATHDATA+"stopwords/"
 PATHWORDS = PATHDATA+"words/"
@@ -60,6 +62,8 @@ def Netpicker(name):
         net = Frankensteinmonster_Net()
     elif name=="Mogelnet":
         net = Mogelnet()
+    elif "distilBERT" in name:
+        net = GruppeDistilBERT("".join(name.split("_")[:-1]), suffix=name.split("_")[-1])
     else:
         net = Gruppe("".join(name.split("_")[:-1]), suffix=name.split("_")[-1])
     return net
@@ -170,4 +174,18 @@ class Gruppe():
 
         print([w for i, w in enumerate(self.words) if bag[i]>0])"""
         result = F.softmax(self.network(bag), dim=-1)
+        return result
+    
+class GruppeDistilBERT():
+    def __init__(self, name, suffix=""):
+        self.name = name
+        self.suffix = suffix
+        self.network = Classifier([768, 768//2, 3])
+        self.network.load_state_dict(
+            torch.load(PATHNET + self.name + "_" + self.suffix + ".pt", map_location=torch.device("cpu"))
+        )
+
+    def predict(self, input):
+        ttt = distilbert.Distilbert.tokenizer([input], return_tensors="pt", padding=True, truncation=True)
+        result = F.softmax(self.network(distilbert.Distilbert.model(ttt.input_ids, attention_mask=ttt.attention_mask).logits), dim=-1).squeeze()
         return result

@@ -50,13 +50,6 @@ def get_dict(tag: str, patterns: List[str]) -> dict[str, Any]:
     }
     return json_dict
 
-# def submit() -> None:
-#     st.write("Daten wurden abgeschickt.")
-#     st.session_state.isSubmitted = True
-#     st.session_state.group_name = uploaded_file.name.split(".")[0]
-#     st.session_state.good_words = data["intents"][0]["patterns"]
-#     st.session_state.neutral_words = data["intents"][1]["patterns"]
-#     st.session_state.bad_words = data["intents"][2]["patterns"]
 
 st.write("## 4. Create your own Chatbot")
 

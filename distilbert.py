@@ -12,21 +12,23 @@ from utils import Dataset, Classifier
 from tqdm.auto import tqdm
 from math import cos
 from torch import Tensor
+import streamlit as st
 
 class Distilbert:
 
+    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-german-cased")
+    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-german-cased")
+    model.pre_classifier = nn.Identity()
+    model.classifier = nn.Identity()
+
     def train(self, groupname: str, timestamp: str):
 
-        tokenizer = AutoTokenizer.from_pretrained("distilbert-base-german-cased")
-        model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-german-cased")
-        model.pre_classifier = nn.Identity()
-        model.classifier = nn.Identity()
         classifier = Classifier([768, 768//2, 3]) #nn.Linear(768,3)
         print(classifier)
         optimizer = torch.optim.Adam(classifier.parameters(), lr=1e-3)
 
-        D = Dataset(model, tokenizer, groupname, timestamp)
-        D_test = Dataset(model, tokenizer, groupname, timestamp, train=False)
+        D = Dataset(self.model, self.tokenizer, groupname, timestamp)
+        D_test = Dataset(self.model, self.tokenizer, groupname, timestamp, train=False)
         batch_size = 16
         dataloader = torch.utils.data.DataLoader(D, batch_size=batch_size, shuffle=True)
         dataloader_test = torch.utils.data.DataLoader(D_test, batch_size=batch_size, shuffle=True)
@@ -70,7 +72,7 @@ class Distilbert:
                 bar.set_description(f"[{epoch+1}/{n_epochs}] L_train: {l_train:.2e}, L_test: {l_test:.2e}, Acc_train: {a_train*100:.2f}%, Acc_test: {a_test*100:.2f}%, lr: {lr:.2e}")
 
         torch.save(classifier, f"outputs/networks/{groupname}_{timestamp}_model.pt")
-        torch.save(classifier.state_dict(), f"outputs/networks/state_dicts/{groupname}_{timestamp}_model.pt")
+        torch.save(classifier.state_dict(), f"outputs/networks/state_dicts/{groupname}_{timestamp}.pt")
         torch.save(lossliste, f"outputs/losses/{groupname}_{timestamp}_losses.pt")
 
         # Plotte Auswertungen
