@@ -1,0 +1,44 @@
+version: '3'
+services:
+  cbpipe:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM nvidia/cuda:11.8.0-base-ubuntu22.04
+        RUN apt-get update && apt-get install -y --no-install-recommends \
+          build-essential \
+          cmake \
+          git \
+          curl \
+          vim \
+          ca-certificates \
+          libjpeg-dev \
+          libpng-dev
+        RUN apt-get install -y python3.11 python3-pip
+        RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+        COPY cbpipe/requirements.txt /app/requirements.txt
+        RUN pip install --upgrade pip
+        RUN pip install --no-cache-dir \
+          -r /app/requirements.txt
+        WORKDIR /app/cbpipe
+    volumes:
+      - ./cbpipe:/app/cbpipe
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1    # Entweder Anzahl der Grafikkarten angeben
+              device_ids: # oder spezifische IDs auflisten
+                - "0"
+              capabilities: [gpu]
+    depends_on:
+      - rabbitmq
+    command: sh -c "celery -A tasks worker --loglevel=info & streamlit run /app/cbpipe/cbpipe.py"
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq
+    restart: unless-stopped
