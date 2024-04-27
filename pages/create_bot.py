@@ -129,7 +129,7 @@ with tab_upload:
         st.session_state.blockUpload = True
 
     st.write("## Template")
-    st.write("Hier könnt ihr euch ein Template herunterladen, um eure Daten in das richtige Format zu bringen. Bitte achtet darauf, die Datei in Eurem Gruppennamen umzubenennen.")
+    st.write("Hier könnt ihr euch ein Template herunterladen, um eure Daten in das richtige Format zu bringen. Bitte achtet darauf, die Datei in Euren Gruppennamen umzubenennen.")
     with open("template.json", "rb") as file:
         fileContent: bytes = file.read()
         st.download_button(
