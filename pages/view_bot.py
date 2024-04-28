@@ -117,7 +117,7 @@ if submit:
 
 st.markdown("---")
 
-st.markdown("### Performce des Bots")
+st.markdown("### Performance des Bots")
 
 # show plot of losses and loglosses
 losses = torch.load(f"outputs/losses/{current_group.name}_{current_group.suffix}_losses.pt")
